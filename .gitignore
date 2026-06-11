@@ -2,10 +2,11 @@
 .chats/
 artifact/
 
-# ── Secrets ───────────────────────────────────────────
+# ── Secrets & deploy state ────────────────────────────
 .env
 env.sh
 certs/
+.deploy-server.conf
 
 # ── Python ───────────────────────────────────────────
 .venv*/

@@ -28,12 +28,13 @@ def test_valid_analysis_request(sample_request_data: dict) -> None:
 
 
 def test_request_missing_required_field(sample_request_data: dict) -> None:
-    incomplete = {k: v for k, v in sample_request_data.items() if k != "body_text"}
+    # message_id is required and has no default
+    incomplete = {k: v for k, v in sample_request_data.items() if k != "message_id"}
     with pytest.raises(ValidationError) as exc_info:
         EmailAnalysisRequest(**incomplete)
     errors = exc_info.value.errors()
     field_names = [e["loc"][-1] for e in errors]
-    assert "body_text" in field_names
+    assert "message_id" in field_names
 
 
 # ---------------------------------------------------------------------------
