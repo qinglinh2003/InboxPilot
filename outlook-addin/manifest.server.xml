@@ -10,8 +10,8 @@
   xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
   xsi:type="MailApp"
 >
-  <Id>a1b2c3d4-e5f6-7890-abcd-ef1234567890</Id>
-  <Version>1.0.0</Version>
+  <Id>8c81a8b9-0f41-4c28-9f52-5b6e2e04f1df</Id>
+  <Version>1.0.2</Version>
   <ProviderName>MailPilot</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="MailPilot" />
@@ -38,7 +38,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://qinglinh.com/mailpilot/index.html" />
+        <SourceLocation DefaultValue="https://qinglinh.com/mailpilot/index.html?v=20260611-1320" />
         <RequestedHeight>450</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -100,8 +100,8 @@
         <bt:Image id="icon80" DefaultValue="https://qinglinh.com/mailpilot/assets/icon-80.png" />
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="taskpaneUrl" DefaultValue="https://qinglinh.com/mailpilot/index.html" />
-        <bt:Url id="commandsUrl" DefaultValue="https://qinglinh.com/mailpilot/commands.html" />
+        <bt:Url id="taskpaneUrl" DefaultValue="https://qinglinh.com/mailpilot/index.html?v=20260611-1320" />
+        <bt:Url id="commandsUrl" DefaultValue="https://qinglinh.com/mailpilot/commands.html?v=20260611-1320" />
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="groupLabel" DefaultValue="MailPilot" />
