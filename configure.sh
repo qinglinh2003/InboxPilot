@@ -19,6 +19,15 @@ fail()  { echo -e "${RED}[FAIL]${NC}  $*"; exit 1; }
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Cross-platform sed in-place (BSD sed on macOS requires -i '', GNU sed does not)
+sedi() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
 echo ""
 echo -e "${CYAN}╔══════════════════════════════════════════════╗${NC}"
 echo -e "${CYAN}║   MailPilot  —  Environment Configuration    ║${NC}"
@@ -52,7 +61,7 @@ if [[ -z "$OPENAI_KEY" ]]; then
     warn "No key entered. You'll need to edit env.sh manually."
 else
     # Use | as sed delimiter to avoid conflicts with key characters
-    sed -i "s|<paste-your-openai-api-key-here>|${OPENAI_KEY}|" env.sh
+    sedi "s|<paste-your-openai-api-key-here>|${OPENAI_KEY}|" env.sh
     ok "OpenAI API key saved."
 fi
 
@@ -68,7 +77,7 @@ else
     fail "Need openssl or python3 to generate a random token."
 fi
 
-sed -i "s|<generate-a-random-token-and-paste-here>|${TOKEN}|" env.sh
+sedi "s|<generate-a-random-token-and-paste-here>|${TOKEN}|" env.sh
 ok "API token generated: ${TOKEN:0:8}...${TOKEN: -8} (64 hex chars)"
 
 # ── 3. Deployment mode ────────────────────────────────────────────────────
@@ -81,8 +90,8 @@ read -rp "  Choose [1/2] (default: 1): " MODE
 MODE="${MODE:-1}"
 
 if [[ "$MODE" == "2" ]]; then
-    sed -i 's|MAILPILOT_ALLOWED_ORIGIN="https://localhost:3000"|MAILPILOT_ALLOWED_ORIGIN="https://localhost"|' env.sh
-    sed -i 's|DATABASE_URL="sqlite+aiosqlite:///./mailpilot.db"|DATABASE_URL="sqlite+aiosqlite:///./data/mailpilot.db"|' env.sh
+    sedi 's|MAILPILOT_ALLOWED_ORIGIN="https://localhost:3000"|MAILPILOT_ALLOWED_ORIGIN="https://localhost"|' env.sh
+    sedi 's|DATABASE_URL="sqlite+aiosqlite:///./mailpilot.db"|DATABASE_URL="sqlite+aiosqlite:///./data/mailpilot.db"|' env.sh
     ok "Configured for Docker deployment (origin=https://localhost)."
 else
     ok "Configured for local dev (origin=https://localhost:3000)."
