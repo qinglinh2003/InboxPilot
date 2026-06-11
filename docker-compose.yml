@@ -1,0 +1,61 @@
+# ── MailPilot — Docker Compose ────────────────────────
+#
+# All env vars come from the shell (sourced from env.sh by deploy.sh).
+# Do NOT run docker compose directly — use:
+#
+#   bash deploy.sh              # build & start
+#   bash deploy.sh --detach     # background mode
+#   bash deploy.sh down         # stop
+#
+# Architecture:
+#
+#   Browser ──HTTPS──▶ nginx (:443)
+#                       ├── /api/*  ──▶ backend (:8000)
+#                       └── /*      ──▶ static React files
+#
+# ──────────────────────────────────────────────────────
+
+services:
+  # ── FastAPI backend ───────────────────────────────
+  backend:
+    build:
+      context: ./backend
+    environment:
+      OPENAI_API_KEY: "${OPENAI_API_KEY}"
+      MAILPILOT_API_TOKEN: "${MAILPILOT_API_TOKEN}"
+      DEFAULT_MODEL: "${DEFAULT_MODEL:-gpt-4o-mini}"
+      ESCALATION_MODEL: "${ESCALATION_MODEL:-gpt-4o}"
+      # Override for persistent volume inside container
+      DATABASE_URL: "sqlite+aiosqlite:///./data/mailpilot.db"
+      MAILPILOT_ALLOWED_ORIGIN: "https://localhost"
+    volumes:
+      - db-data:/app/data
+    expose:
+      - "8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── nginx (static frontend + reverse proxy) ──────
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+      args:
+        VITE_BACKEND_URL: ""
+        VITE_API_TOKEN: "${MAILPILOT_API_TOKEN}"
+    ports:
+      - "443:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  db-data:
+    driver: local

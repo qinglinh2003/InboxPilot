@@ -1,0 +1,22 @@
+# ── Secrets ───────────────────────────────────────────
+.env
+env.sh
+certs/
+
+# ── Python ───────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+backend/data/
+
+# ── Node ─────────────────────────────────────────────
+node_modules/
+outlook-addin/dist/
+
+# ── IDE ──────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo

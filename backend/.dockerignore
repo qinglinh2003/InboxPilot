@@ -1,0 +1,9 @@
+# Backend Docker build context exclusions
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.pytest_cache
+tests/
+data/
+.env

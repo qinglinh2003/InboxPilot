@@ -1,0 +1,33 @@
+# ── Docker build context exclusions ──────────────────
+# Keep the build context small and avoid leaking secrets.
+
+# Version control
+.git
+.gitignore
+
+# Environment / secrets
+.env
+certs/
+
+# Python artifacts
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+*.egg-info
+backend/data/
+
+# Node artifacts
+outlook-addin/node_modules
+outlook-addin/dist
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Project meta (not needed in containers)
+.chats
+setup.sh
+start.sh
