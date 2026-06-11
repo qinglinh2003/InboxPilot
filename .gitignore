@@ -1,3 +1,7 @@
+# ── Chat / artifacts (never commit) ──────────────────
+.chats/
+artifact/
+
 # ── Secrets ───────────────────────────────────────────
 .env
 env.sh
