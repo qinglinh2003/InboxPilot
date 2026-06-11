@@ -174,9 +174,12 @@ async def analyze_email(
             f"character limit.",
         )
 
+    # -- Handle empty body gracefully ----------------------------------
+    body_text = body.body_text.strip() or body.subject or "(empty email)"
+
     # -- Clean body and compute hash -----------------------------------
     taxonomy_version = get_taxonomy_version()
-    cleaned_body = clean_email_body(body.body_text, max_length=settings.MAX_BODY_LENGTH)
+    cleaned_body = clean_email_body(body_text, max_length=settings.MAX_BODY_LENGTH)
     content_hash = compute_content_hash(
         provider=body.provider,
         message_id=body.message_id,

@@ -41,10 +41,10 @@ function asyncResult<T>(
  * Office.context.mailbox.item.
  */
 export async function getCurrentEmail(): Promise<EmailData> {
-  const item = Office.context.mailbox.item;
-  if (!item) {
-    throw new Error("No email is currently selected.");
+  if (typeof Office === "undefined" || !Office.context?.mailbox?.item) {
+    throw new Error("No email is currently selected. Make sure you opened this from within Outlook.");
   }
+  const item = Office.context.mailbox.item;
 
   // Subject & sender are synchronous properties
   const subject: string = item.subject ?? "";
@@ -59,10 +59,35 @@ export async function getCurrentEmail(): Promise<EmailData> {
   );
   const recipients = [...toRecipients, ...ccRecipients];
 
-  // Body — async
-  const body: string = await asyncResult<string>((cb) =>
-    item.body.getAsync(Office.CoercionType?.Text ?? "text", cb),
-  );
+  // Body — try plain text first, fall back to HTML
+  let body: string = "";
+  try {
+    body = await asyncResult<string>((cb) =>
+      item.body.getAsync(Office.CoercionType?.Text ?? "text", cb),
+    );
+  } catch {
+    // Text coercion failed, ignore
+  }
+
+  // If text body is empty, try HTML and strip tags
+  if (!body.trim()) {
+    try {
+      const html: string = await asyncResult<string>((cb) =>
+        item.body.getAsync(Office.CoercionType?.Html ?? "html", cb),
+      );
+      // Strip HTML tags to get plain text
+      const tmp = document.createElement("div");
+      tmp.innerHTML = html;
+      body = tmp.textContent || tmp.innerText || "";
+    } catch {
+      // HTML coercion also failed
+    }
+  }
+
+  // Last resort: use subject as body
+  if (!body.trim()) {
+    body = subject || "(empty email)";
+  }
 
   // IDs
   const messageId: string = item.itemId ?? "";

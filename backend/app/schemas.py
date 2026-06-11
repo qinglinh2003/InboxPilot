@@ -42,7 +42,7 @@ class EmailAnalysisRequest(BaseModel):
     to: list[EmailContact] = Field(default_factory=list)
     cc: list[EmailContact] = Field(default_factory=list)
     received_at: str
-    body_text: str
+    body_text: str = ""
     existing_categories: list[str] = Field(default_factory=list)
     user_context: UserContext | None = None
 
