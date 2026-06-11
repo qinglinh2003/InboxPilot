@@ -13,7 +13,7 @@ from typing import Any
 from openai import AsyncOpenAI, APIConnectionError, APIStatusError, APITimeoutError
 
 from app.llm.prompts import SYSTEM_PROMPT, build_user_prompt, should_escalate
-from app.llm.schemas import LLM_OUTPUT_SCHEMA, validate_llm_output
+from app.llm.schemas import validate_llm_output
 
 logger = logging.getLogger(__name__)
 

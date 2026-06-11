@@ -40,7 +40,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://localhost/taskpane.html" />
+        <SourceLocation DefaultValue="https://localhost/index.html" />
         <RequestedHeight>450</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -101,7 +101,7 @@
       </bt:Images>
       <bt:Urls>
         <bt:Url id="Commands.Url" DefaultValue="https://localhost/commands.html" />
-        <bt:Url id="Taskpane.Url" DefaultValue="https://localhost/taskpane.html" />
+        <bt:Url id="Taskpane.Url" DefaultValue="https://localhost/index.html" />
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GroupLabel" DefaultValue="MailPilot" />
