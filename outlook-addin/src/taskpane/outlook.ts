@@ -21,7 +21,7 @@ export interface EmailData {
 
 /** Promisify the Office async-callback pattern. */
 function asyncResult<T>(
-  fn: (callback: (result: Office.AsyncResult<T>) => void) => void,
+  fn: (callback: (result: any) => void) => void,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     fn((result: any) => {
