@@ -30,6 +30,20 @@ fi
 source "$SCRIPT_DIR/env.sh"
 ok "Environment loaded from env.sh"
 
+# ── Generate .env for docker compose ─────────────────────────────────────
+# Docker Compose automatically reads .env in the project directory.
+# This lets "docker compose up" work even without "bash deploy.sh".
+info "Generating .env from env.sh for Docker Compose..."
+cat > "$SCRIPT_DIR/.env" <<DOTENV
+# Auto-generated from env.sh by deploy.sh — do not edit manually.
+# To change values, edit env.sh and re-run: bash deploy.sh
+OPENAI_API_KEY=${OPENAI_API_KEY}
+MAILPILOT_API_TOKEN=${MAILPILOT_API_TOKEN}
+DEFAULT_MODEL=${DEFAULT_MODEL:-gpt-4o-mini}
+ESCALATION_MODEL=${ESCALATION_MODEL:-gpt-4o}
+DOTENV
+ok ".env generated (docker compose will read it automatically)"
+
 # ── Shortcut sub-commands ─────────────────────────────────────────────────
 ACTION="${1:-up}"
 
@@ -67,7 +81,7 @@ if ! docker compose version &>/dev/null; then
     fail "docker compose not available. Install Docker Compose v2."
 fi
 
-ok "Docker $(docker --version | grep -oP '\d+\.\d+\.\d+')"
+ok "Docker $(docker --version | sed 's/.*version \([0-9.]*\).*/\1/')"
 
 # ── Generate TLS certs if missing ─────────────────────────────────────────
 if [[ ! -f certs/cert.pem ]] || [[ ! -f certs/key.pem ]]; then
