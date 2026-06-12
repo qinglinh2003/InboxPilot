@@ -137,8 +137,17 @@ def validate_llm_output(
     allowed_set = set(allowed_categories)
 
     # (a) Filter to allowed category names
-    raw_cats: list[dict[str, Any]] = output.get("recommended_categories", [])
-    filtered_cats = [c for c in raw_cats if c.get("name") in allowed_set]
+    # LLM may return categories as:
+    #   - list of dicts: [{"name": "Finance", "confidence": 0.9}, ...]
+    #   - list of strings: ["Finance", "Action Required", ...]
+    raw_cats = output.get("recommended_categories", [])
+    normalized_cats: list[dict[str, Any]] = []
+    for c in raw_cats:
+        if isinstance(c, dict) and c.get("name") in allowed_set:
+            normalized_cats.append(c)
+        elif isinstance(c, str) and c in allowed_set:
+            normalized_cats.append({"name": c, "confidence": 0.7})
+    filtered_cats = normalized_cats
 
     # (b) Enforce maximum
     output["recommended_categories"] = filtered_cats[:max_categories]

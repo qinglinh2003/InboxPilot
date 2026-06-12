@@ -11,13 +11,13 @@
   xsi:type="MailApp"
 >
   <Id>8c81a8b9-0f41-4c28-9f52-5b6e2e04f1df</Id>
-  <Version>1.0.3</Version>
+  <Version>1.0.4</Version>
   <ProviderName>MailPilot</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="MailPilot" />
   <Description DefaultValue="AI-powered email summarization and categorization for Outlook." />
-  <IconUrl DefaultValue="https://qinglinh.com/mailpilot/assets/icon-32.png" />
-  <HighResolutionIconUrl DefaultValue="https://qinglinh.com/mailpilot/assets/icon-64.png" />
+  <IconUrl DefaultValue="https://qinglinh.com/mailpilot/assets/icon-32.png?v=2" />
+  <HighResolutionIconUrl DefaultValue="https://qinglinh.com/mailpilot/assets/icon-64.png?v=2" />
 
   <SupportUrl DefaultValue="https://github.com/qinglinh2003/InboxPilot" />
 
@@ -95,9 +95,9 @@
 
     <Resources>
       <bt:Images>
-        <bt:Image id="icon16" DefaultValue="https://qinglinh.com/mailpilot/assets/icon-16.png" />
-        <bt:Image id="icon32" DefaultValue="https://qinglinh.com/mailpilot/assets/icon-32.png" />
-        <bt:Image id="icon80" DefaultValue="https://qinglinh.com/mailpilot/assets/icon-80.png" />
+        <bt:Image id="icon16" DefaultValue="https://qinglinh.com/mailpilot/assets/icon-16.png?v=2" />
+        <bt:Image id="icon32" DefaultValue="https://qinglinh.com/mailpilot/assets/icon-32.png?v=2" />
+        <bt:Image id="icon80" DefaultValue="https://qinglinh.com/mailpilot/assets/icon-80.png?v=2" />
       </bt:Images>
       <bt:Urls>
         <bt:Url id="taskpaneUrl" DefaultValue="https://qinglinh.com/mailpilot/index.html?v=20260611-1315" />
