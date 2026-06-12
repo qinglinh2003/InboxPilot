@@ -79,6 +79,19 @@ LLM_OUTPUT_SCHEMA: dict[str, Any] = {
 
 _VALID_PRIORITIES: set[str] = {"high", "medium", "low"}
 
+# Map common LLM mistakes to valid priority values
+_PRIORITY_ALIASES: dict[str, str] = {
+    "action required": "high",
+    "urgent": "high",
+    "critical": "high",
+    "important": "high",
+    "normal": "medium",
+    "moderate": "medium",
+    "none": "low",
+    "informational": "low",
+    "fyi": "low",
+}
+
 
 # ── Validation ──────────────────────────────────────────────────────
 
@@ -142,11 +155,14 @@ def validate_llm_output(
             "Deadline is marked as existing but no evidence was provided."
         )
 
-    # (e) Priority must be valid
-    priority = output.get("priority", "")
-    if priority not in _VALID_PRIORITIES:
-        raise ValueError(
-            f"Invalid priority '{priority}'; expected one of {sorted(_VALID_PRIORITIES)}."
-        )
+    # (e) Priority must be valid — auto-fix common LLM mistakes
+    priority = output.get("priority", "").strip().lower()
+    if priority in _VALID_PRIORITIES:
+        output["priority"] = priority
+    elif priority in _PRIORITY_ALIASES:
+        output["priority"] = _PRIORITY_ALIASES[priority]
+    else:
+        # Last resort: default to medium rather than crashing
+        output["priority"] = "medium"
 
     return output

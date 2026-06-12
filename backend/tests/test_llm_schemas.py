@@ -105,6 +105,19 @@ def test_rejects_deadline_without_evidence() -> None:
         validate_llm_output(_base_output(deadline=bad_deadline), allowed_categories=ALLOWED_CATEGORIES)
 
 
-def test_rejects_invalid_priority() -> None:
-    with pytest.raises(ValueError):
-        validate_llm_output(_base_output(priority="urgent"), allowed_categories=ALLOWED_CATEGORIES)
+def test_auto_fixes_invalid_priority() -> None:
+    # "urgent" should be mapped to "high" via alias
+    result = validate_llm_output(_base_output(priority="urgent"), allowed_categories=ALLOWED_CATEGORIES)
+    assert result["priority"] == "high"
+
+    # "Action Required" should also map to "high"
+    result = validate_llm_output(_base_output(priority="Action Required"), allowed_categories=ALLOWED_CATEGORIES)
+    assert result["priority"] == "high"
+
+    # Completely unknown values default to "medium"
+    result = validate_llm_output(_base_output(priority="bananas"), allowed_categories=ALLOWED_CATEGORIES)
+    assert result["priority"] == "medium"
+
+    # Valid values pass through unchanged
+    result = validate_llm_output(_base_output(priority="low"), allowed_categories=ALLOWED_CATEGORIES)
+    assert result["priority"] == "low"
