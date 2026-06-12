@@ -101,8 +101,10 @@ def _error_response(status_code: int, code: str, message: str) -> JSONResponse:
     return JSONResponse(status_code=status_code, content=body.model_dump())
 
 
-def _parse_categories(raw: list) -> list[CategoryRecommendation]:
+def _parse_categories(raw: Any = None) -> list[CategoryRecommendation]:
     """Safely parse LLM category output into schema objects."""
+    if not raw or not isinstance(raw, list):
+        return []
     results: list[CategoryRecommendation] = []
     for item in raw[: settings.MAX_CATEGORIES_PER_EMAIL]:
         if isinstance(item, dict):
@@ -113,17 +115,29 @@ def _parse_categories(raw: list) -> list[CategoryRecommendation]:
                     reason=item.get("reason", ""),
                 )
             )
+        elif isinstance(item, str):
+            # LLM sometimes returns plain strings like ["Finance", "Action Required"]
+            results.append(
+                CategoryRecommendation(
+                    name=item, confidence=0.7, reason=""
+                )
+            )
     return results
 
 
-def _parse_deadline(raw: Any) -> Deadline:
+def _parse_deadline(raw: Any = None) -> Deadline:
     """Safely parse LLM deadline output into the schema object."""
+    if raw is None:
+        return Deadline(exists=False)
     if isinstance(raw, dict):
         return Deadline(
             exists=bool(raw.get("exists", False)),
             date=raw.get("date"),
             evidence=raw.get("evidence"),
         )
+    # If raw is a string (e.g., "2026-06-15"), treat as a date
+    if isinstance(raw, str) and raw.strip():
+        return Deadline(exists=True, date=raw.strip())
     return Deadline(exists=False)
 
 
@@ -282,16 +296,21 @@ async def analyze_email(
         )
 
     # -- Build response ------------------------------------------------
-    recommended = _parse_categories(llm_result["recommended_categories"])
-    deadline = _parse_deadline(llm_result["deadline"])
+    # Use .get() with defaults — LLM output may omit any field
+    summary = llm_result.get("summary", "No summary available.")
+    priority = llm_result.get("priority", "medium")
+    suggested_action = llm_result.get("suggested_action", "Review this email.")
+    needs_reply = llm_result.get("needs_reply", False)
+    recommended = _parse_categories(llm_result.get("recommended_categories", []))
+    deadline = _parse_deadline(llm_result.get("deadline"))
 
     response = EmailAnalysisResponse(
         message_id=body.message_id,
-        summary=llm_result["summary"],
-        priority=llm_result["priority"],
+        summary=summary,
+        priority=priority,
         recommended_categories=recommended,
-        suggested_action=llm_result["suggested_action"],
-        needs_reply=llm_result["needs_reply"],
+        suggested_action=suggested_action,
+        needs_reply=needs_reply,
         deadline=deadline,
         cache=CacheInfo(hit=False, content_hash=content_hash),
     )
@@ -304,15 +323,15 @@ async def analyze_email(
             conversation_id=body.conversation_id,
             content_hash=content_hash,
             taxonomy_version=taxonomy_version,
-            model=usage_info["model"],
-            summary=llm_result["summary"],
-            priority=llm_result["priority"],
+            model=usage_info.get("model", "unknown"),
+            summary=summary,
+            priority=priority,
             recommended_categories_json=json.dumps(
                 [c.model_dump() for c in recommended]
             ),
-            suggested_action=llm_result["suggested_action"],
-            needs_reply=llm_result["needs_reply"],
-            deadline_json=json.dumps(deadline.model_dump()),
+            suggested_action=suggested_action,
+            needs_reply=needs_reply,
+            deadline_json=json.dumps(deadline.model_dump() if deadline else None),
         )
         db.add(cache_entry)
         await db.flush()
@@ -324,9 +343,9 @@ async def analyze_email(
         usage_entry = UsageLog(
             provider=body.provider,
             message_id=body.message_id,
-            model=usage_info["model"],
-            input_tokens=usage_info["input_tokens"],
-            output_tokens=usage_info["output_tokens"],
+            model=usage_info.get("model", "unknown"),
+            input_tokens=usage_info.get("input_tokens", 0),
+            output_tokens=usage_info.get("output_tokens", 0),
             estimated_cost_usd=0.0,  # cost estimation can be added later
             cache_hit=False,
         )
