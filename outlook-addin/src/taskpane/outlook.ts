@@ -117,8 +117,53 @@ export async function getCurrentEmail(): Promise<EmailData> {
 }
 
 /**
+ * Ensure categories exist in the user's master category list.
+ * If a category doesn't exist yet, it will be created with a preset color.
+ */
+async function ensureMasterCategories(categories: string[]): Promise<void> {
+  const mailbox = Office.context.mailbox;
+  if (!mailbox?.masterCategories) {
+    // masterCategories API not available (requires Mailbox 1.8+), skip
+    return;
+  }
+
+  // Color presets available in Outlook (0-24)
+  const colorPresets = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+  // Get existing master categories
+  let existingNames: Set<string> = new Set();
+  try {
+    const existing = await asyncResult<any[]>((cb) =>
+      mailbox.masterCategories.getAsync(cb),
+    );
+    existingNames = new Set(existing.map((c: any) => c.displayName ?? c));
+  } catch {
+    // If we can't read master categories, try adding anyway
+  }
+
+  // Add missing categories
+  const toAdd = categories.filter((name) => !existingNames.has(name));
+  if (toAdd.length === 0) return;
+
+  const newCategories = toAdd.map((name, i) => ({
+    displayName: name,
+    color: colorPresets[i % colorPresets.length],
+  }));
+
+  try {
+    await asyncResult<void>((cb) =>
+      mailbox.masterCategories.addAsync(newCategories, cb),
+    );
+  } catch {
+    // Some clients may not support creating master categories
+    // Continue anyway — addAsync on item might still work
+  }
+}
+
+/**
  * Apply (set) categories on the currently-selected message.
  * Uses the Mailbox 1.8+ categories API.
+ * Automatically creates categories in master list if they don't exist.
  */
 export async function applyCategories(categories: string[]): Promise<void> {
   const item = Office.context.mailbox.item;
@@ -130,6 +175,9 @@ export async function applyCategories(categories: string[]): Promise<void> {
     throw new Error("Categories API not available on this client.");
   }
 
-  // categories.addAsync expects a plain string array, not objects
+  // Step 1: Ensure categories exist in master list
+  await ensureMasterCategories(categories);
+
+  // Step 2: Apply to the current email item
   return asyncResult<void>((cb) => item.categories.addAsync(categories, cb));
 }
