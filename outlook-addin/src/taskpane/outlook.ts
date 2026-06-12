@@ -130,8 +130,6 @@ export async function applyCategories(categories: string[]): Promise<void> {
     throw new Error("Categories API not available on this client.");
   }
 
-  // Build category objects expected by the API
-  const categoryObjects = categories.map((name) => ({ displayName: name }));
-
-  return asyncResult<void>((cb) => item.categories.addAsync(categoryObjects, cb));
+  // categories.addAsync expects a plain string array, not objects
+  return asyncResult<void>((cb) => item.categories.addAsync(categories, cb));
 }
