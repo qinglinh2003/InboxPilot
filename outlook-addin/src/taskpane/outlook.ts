@@ -127,8 +127,11 @@ async function ensureMasterCategories(categories: string[]): Promise<void> {
     return;
   }
 
-  // Color presets available in Outlook (0-24)
-  const colorPresets = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  // Office.js CategoryColor enum values — MUST be strings like "Preset0", not numbers
+  const colorPresets = [
+    "Preset0", "Preset1", "Preset2", "Preset3", "Preset4", "Preset5",
+    "Preset6", "Preset7", "Preset8", "Preset9", "Preset10", "Preset11",
+  ];
 
   // Get existing master categories
   let existingNames: Set<string> = new Set();
@@ -136,27 +139,31 @@ async function ensureMasterCategories(categories: string[]): Promise<void> {
     const existing = await asyncResult<any[]>((cb) =>
       mailbox.masterCategories.getAsync(cb),
     );
-    existingNames = new Set(existing.map((c: any) => c.displayName ?? c));
+    existingNames = new Set(
+      (existing || []).map((c: any) =>
+        typeof c === "string" ? c : (c.displayName ?? c.name ?? String(c))
+      ),
+    );
   } catch {
     // If we can't read master categories, try adding anyway
   }
 
-  // Add missing categories
+  // Add missing categories one by one (batch add can fail on some clients)
   const toAdd = categories.filter((name) => !existingNames.has(name));
-  if (toAdd.length === 0) return;
-
-  const newCategories = toAdd.map((name, i) => ({
-    displayName: name,
-    color: colorPresets[i % colorPresets.length],
-  }));
-
-  try {
-    await asyncResult<void>((cb) =>
-      mailbox.masterCategories.addAsync(newCategories, cb),
-    );
-  } catch {
-    // Some clients may not support creating master categories
-    // Continue anyway — addAsync on item might still work
+  for (let i = 0; i < toAdd.length; i++) {
+    const entry = {
+      displayName: toAdd[i],
+      color: colorPresets[i % colorPresets.length],
+    };
+    try {
+      await asyncResult<void>((cb) =>
+        mailbox.masterCategories.addAsync([entry], cb),
+      );
+    } catch {
+      // This specific category might already exist with a different casing,
+      // or the client doesn't support creating master categories.
+      // Continue — item.categories.addAsync might still work.
+    }
   }
 }
 
